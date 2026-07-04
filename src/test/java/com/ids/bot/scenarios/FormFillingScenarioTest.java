@@ -63,6 +63,21 @@ class FormFillingScenarioTest {
         }
 
         @Test
+        void allSubjectsSelectableWithoutError() {
+            // Rastgele seçim yerine her seçeneği teker teker dener —
+            // "şans eseri geçen test" riskini ortadan kaldıran deterministik kapsama testi.
+            for (String subject : FormDataPool.allSubjects()) {
+                driver.get("http://techmarket.lab/contact.html"); // her iterasyonda temiz form
+                ContactPage page = new ContactPage(driver);
+                assertDoesNotThrow(
+                    () -> page.fillForm("Test User", "test@example.com", subject, "Test mesajı"),
+                    "selectByVisibleText failed for subject: \"" + subject + "\""
+                );
+                System.out.println("[SubjectTest] OK: \"" + subject + "\"");
+            }
+        }
+
+        @Test
         void contactFormAlwaysSubmitsWithoutError() {
             ContactPage page = new ContactPage(driver);
             page.open();

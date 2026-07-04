@@ -51,6 +51,11 @@ public class FormDataPool {
         return pick(SUBJECTS);
     }
 
+    /** Tüm seçenek metinlerini döndürür — deterministik kapsama testleri için. */
+    public static List<String> allSubjects() {
+        return SUBJECTS;
+    }
+
     public static String randomMessage() {
         return pick(MESSAGES);
     }
