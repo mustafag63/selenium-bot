@@ -26,9 +26,9 @@ public class FormDataPool {
         "selin.aydin@example.com"
     );
 
-    /** TechMarket contact.html <select> seçenekleriyle birebir eşleşir. */
+    /** TechMarket contact.html <select> seçenekleriyle birebir eşleşir (4 option). */
     private static final List<String> SUBJECTS = List.of(
-        "Sipariş Durumu", "Teknik Destek", "İade ve Değişim", "Genel Soru", "Diğer"
+        "Genel Bilgi", "Sipariş Durumu", "Teknik Destek", "Diğer"
     );
 
     private static final List<String> MESSAGES = List.of(

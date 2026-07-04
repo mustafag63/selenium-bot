@@ -5,7 +5,7 @@ import org.openqa.selenium.WebDriver;
 
 public class ProductDetailPage extends BasePage {
 
-    private static final By PRODUCT_NAME = By.cssSelector("h1.product-title, h1, .product-name");
+    private static final By PRODUCT_NAME = By.cssSelector(".info h2");
     private static final By ADD_TO_CART  = By.xpath("//button[contains(text(),'Sepete Ekle')]");
 
     public ProductDetailPage(WebDriver driver) {
