@@ -5,8 +5,8 @@ import org.openqa.selenium.WebDriver;
 
 public class ProductDetailPage extends BasePage {
 
-    private static final By PRODUCT_NAME   = By.cssSelector("h1.product-title, h1, .product-name");
-    private static final By ADD_TO_CART    = By.cssSelector(".add-to-cart, button[id*='cart'], input[value*='Sepet']");
+    private static final By PRODUCT_NAME = By.cssSelector("h1.product-title, h1, .product-name");
+    private static final By ADD_TO_CART  = By.xpath("//button[contains(text(),'Sepete Ekle')]");
 
     public ProductDetailPage(WebDriver driver) {
         super(driver);
@@ -26,6 +26,9 @@ public class ProductDetailPage extends BasePage {
      */
     public void addToCart() {
         click(ADD_TO_CART);
-        driver.switchTo().alert().accept();
+        org.openqa.selenium.Alert alert = driver.switchTo().alert();
+        String alertText = alert.getText();
+        alert.accept();
+        System.out.println("[ProductDetail] Alert: " + alertText);
     }
 }
