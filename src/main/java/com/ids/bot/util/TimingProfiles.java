@@ -1,22 +1,22 @@
 package com.ids.bot.util;
 
 /**
- * Persona başına TimingProfile fabrikası.
+ * Factory that produces per-persona TimingProfiles.
  *
- * Bu parametreler CICIDS2017 BENIGN (Monday-WorkingHours) trafiğinin istatistiksel analizinden
- * türetildi: KMeans kümeleme (k=2, silhouette=0.556) ile HTTP/HTTPS flow'ları iki kümeye ayrıldı,
- * her küme için Active/Idle döngü süreleri ve Forward IAT (zero-inflated: near-zero bandı +
- * koşullu log-normal) ayrı ayrı fit edildi.
+ * Parameters are derived from statistical analysis of CICIDS2017 BENIGN (Monday-WorkingHours)
+ * traffic: KMeans clustering (k=2, silhouette=0.556) split HTTP/HTTPS flows into two clusters;
+ * Active/Idle cycle durations and Forward IAT (zero-inflated: near-zero band + conditional
+ * log-normal) were fit separately for each cluster.
  *
- * Kaynak analiz scripti (extract_params.py) artık KULLANILMIYOR.
- * UYARI: log1p(ms) uzayında çalışıyordu, bu sınıftaki sabitler log1p(microseconds) uzayında;
- * karıştırılırsa 1000× hata oluşur (bu proje tarihinde gerçekten yaşanmış bir hataydı).
+ * The source analysis script (extract_params.py) is NO LONGER USED.
+ * WARNING: it operated in log1p(ms) space; constants in this class are in log1p(microseconds).
+ * Mixing the two causes a 1000× error — this has happened before in this project.
  */
 public class TimingProfiles {
 
     private TimingProfiles() {}
 
-    /** Gezinme-odaklı persona zamanlama profili. */
+    /** Timing profile for the browsing-focused persona. */
     public static TimingProfile browsing() {
         return new TimingProfile(
             /* activeLogMean */    12.0997,
@@ -37,7 +37,7 @@ public class TimingProfiles {
         );
     }
 
-    /** Ürün-odaklı persona zamanlama profili. */
+    /** Timing profile for the product-searching persona. */
     public static TimingProfile searching() {
         return new TimingProfile(
             /* activeLogMean */    11.7473,
@@ -59,8 +59,8 @@ public class TimingProfiles {
     }
 
     /**
-     * Form doldurma persona zamanlama profili.
-     * = Searching parametreleri, sadece pActiveIdleCycle farklı (0.05).
+     * Timing profile for the form-filling persona.
+     * Uses the same parameters as searching, but with a lower pActiveIdleCycle (0.05).
      */
     public static TimingProfile formFilling() {
         return new TimingProfile(
@@ -72,8 +72,8 @@ public class TimingProfiles {
     }
 
     /**
-     * Genel/ortalama referans profili — tüm personaların ortalaması.
-     * Sadece tanısal/geriye dönük uyumluluk amaçlı, aktif kod yolunda kullanılmıyor.
+     * Aggregate reference profile — average across all personas.
+     * For diagnostic and backward-compatibility purposes only; not used in active code paths.
      */
     public static TimingProfile aggregate() {
         return new TimingProfile(

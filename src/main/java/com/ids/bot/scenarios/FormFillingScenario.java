@@ -9,10 +9,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FormFillingScenario {
 
     /**
-     * Submit sonrası tarayıcının isteği tamamlamasına izin verilen bekleme.
-     * Genel waitBetweenActions mantığından FARKLI, kasıtlı olarak ayrı bir zamanlama.
-     * (Bu proje tarihinde bu farkın script analizinde kategori hatasına yol açtığı,
-     * ama botun kendisinin doğru olduğu netleşmişti.)
+     * Post-submit settle time to let the browser complete the request.
+     * INTENTIONALLY separate from the general waitBetweenActions timing.
+     * (In project history this distinction caused a category error in script analysis,
+     * but the bot itself was confirmed correct.)
      */
     private static final long SUBMIT_SETTLE = 2500L;
 
@@ -75,7 +75,7 @@ public class FormFillingScenario {
 
         contactPage.fillForm(name, email, subject, message);
 
-        // İnsan yazma hızını taklit eden typing delay'leri
+        // Typing delays that simulate human keypress cadence
         for (int i = 0; i < 5; i++) {
             Thread.sleep(ThreadLocalRandom.current().nextLong(400, 1200));
         }
@@ -90,7 +90,7 @@ public class FormFillingScenario {
         return ThreadLocalRandom.current().nextDouble() < returnToHomeProbability();
     }
 
-    /** Ayrı metod — test edilebilirlik için (inline sabite çevrilmedi, bilinçli karar). */
+    /** Separate method for testability — deliberately not inlined as a constant. */
     double returnToHomeProbability() {
         return 0.30;
     }

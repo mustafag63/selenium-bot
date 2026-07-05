@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Genel amaçlı, birinci-derece Markov zinciri motoru.
- * Her BotState için bir sonraki BotState'e geçiş olasılıklarını tutar.
+ * General-purpose first-order Markov chain engine.
+ * Holds the transition probabilities from each BotState to the next.
  */
 public class MarkovTransitionModel {
 
@@ -29,8 +29,8 @@ public class MarkovTransitionModel {
     }
 
     /**
-     * Mevcut duruma göre olasılıkla ağırlıklandırılmış rastgele bir sonraki durumu döndürür.
-     * ThreadLocalRandom ile thread-safe.
+     * Returns a probability-weighted random next state for the given current state.
+     * Thread-safe via ThreadLocalRandom.
      */
     public BotState nextState(BotState current) {
         Map<BotState, Double> transitions = matrix.get(current);
@@ -45,7 +45,7 @@ public class MarkovTransitionModel {
                 return entry.getKey();
             }
         }
-        // Floating-point sınır durumunda son elemanı döndür
+        // Floating-point boundary: return the last element
         return transitions.keySet().stream().reduce((a, b) -> b).orElseThrow();
     }
 

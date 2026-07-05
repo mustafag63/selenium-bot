@@ -1,0 +1,79 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.ids.bot:selenium-bot >----------------------
+[INFO] Building selenium-bot 1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ selenium-bot ---
+[INFO] skip non existing resourceDirectory /Users/mustafa/Desktop/selenium-bot/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ selenium-bot ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- exec:3.3.0:java (default-cli) @ selenium-bot ---
+Jul 05, 2026 2:18:35 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 149
+Jul 05, 2026 2:18:35 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 149
+Jul 05, 2026 2:18:35 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+WARNING: Unable to find version of CDP to use for 149.0.7827.201. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.21.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+Jul 05, 2026 2:18:35 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+WARNING: Unable to find version of CDP to use for 149.0.7827.201. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.21.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+CDP Network.enable result: {}
+CDP Network.enable result: {}
+CDP setCacheDisabled result: {}
+CDP cache disable VERIFIED — cache is off for this session.
+CDP setCacheDisabled result: {}
+CDP cache disable VERIFIED — cache is off for this session.
+[FormFilling] Entry 1: PRODUCTS (brief orientation)
+[Searching] 1: PRODUCTS
+[FormFilling] Entry 2: ABOUT (brief orientation)
+[FormFilling] Entry 3: PRODUCTS (brief orientation)
+[FormFilling] Entry 4: HOME (brief orientation)
+[bot-searching] ERROR: no such alert
+  (Session info: chrome=149.0.7827.201)
+Build info: version: '4.21.0', revision: '79ed462ef4'
+System info: os.name: 'Mac OS X', os.arch: 'aarch64', os.version: '26.2', java.version: '26.0.1'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Command: [aa13f94b07851b528df0a1f30b8cd13c, getAlertText {}]
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 149.0.7827.201, chrome: {chromedriverVersion: 149.0.7827.155 (07b52360cc1..., userDataDir: /var/folders/h2/k4g_psts6dv...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:58385}, goog:processID: 9825, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: mac, proxy: Proxy(), se:cdp: ws://localhost:58385/devtoo..., se:cdpVersion: 149.0.7827.201, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: aa13f94b07851b528df0a1f30b8cd13c
+[FormFilling] CONTACT page opened - filling form
+Jul 05, 2026 2:18:36 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 149
+Jul 05, 2026 2:18:36 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+WARNING: Unable to find version of CDP to use for 149.0.7827.201. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.21.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+CDP Network.enable result: {}
+CDP setCacheDisabled result: {}
+CDP cache disable VERIFIED — cache is off for this session.
+[Browsing] 1: PRODUCT_DETAIL - MechType RGB Keyboard
+[FormFilling] Contact form submitted
+[FormFilling] session ending — user left
+[FormFilling] Scenario completed
+[Browsing] 2: HOME
+[Browsing] 3: PRODUCTS
+[Browsing] 4: PRODUCT_DETAIL - SoundWave Pro Headphones
+[Browsing] 5: CONTACT
+[Browsing] session ending — user left
+[Browsing] Scenario completed (5 actions)
+
+================ PARALLEL RUN SUMMARY ================
+OK   browsing     (bot-browsing)
+FAIL searching    (bot-searching)
+     -> no such alert
+  (Session info: chrome=149.0.7827.201)
+Build info: version: '4.21.0', revision: '79ed462ef4'
+System info: os.name: 'Mac OS X', os.arch: 'aarch64', os.version: '26.2', java.version: '26.0.1'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Command: [aa13f94b07851b528df0a1f30b8cd13c, getAlertText {}]
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 149.0.7827.201, chrome: {chromedriverVersion: 149.0.7827.155 (07b52360cc1..., userDataDir: /var/folders/h2/k4g_psts6dv...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:58385}, goog:processID: 9825, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: mac, proxy: Proxy(), se:cdp: ws://localhost:58385/devtoo..., se:cdpVersion: 149.0.7827.201, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: aa13f94b07851b528df0a1f30b8cd13c
+OK   formfilling  (bot-formfilling)
+2/3 bots completed successfully.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:31 min
+[INFO] Finished at: 2026-07-05T14:20:03+03:00
+[INFO] ------------------------------------------------------------------------

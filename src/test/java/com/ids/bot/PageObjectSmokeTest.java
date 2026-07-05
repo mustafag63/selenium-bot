@@ -8,8 +8,8 @@ import org.openqa.selenium.WebDriver;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Gerçek Chrome + lab (techmarket.lab) gerektirir.
- * mvn test -Dgroups=integration
+ * Requires a real Chrome instance and the lab network (techmarket.lab).
+ * Run with: mvn test -Dgroups=integration
  */
 @Tag("integration")
 class PageObjectSmokeTest {

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FormFillingScenarioTest {
 
     // -------------------------------------------------------------------------
-    // Lab'sız unit testler
+    // Unit tests — no lab required
     // -------------------------------------------------------------------------
 
     @Test
@@ -25,10 +25,10 @@ class FormFillingScenarioTest {
 
     @Test
     void homeReturnRateMatchesTarget() {
-        // shouldReturnToHomeAfterSubmit() 100.000 kez çağrılır, oran 0.30±0.02 olmalı.
-        // FormFillingScenario'yu driver olmadan test etmek için minimal subclass.
+        // shouldReturnToHomeAfterSubmit() is called 100 000 times; expected rate 0.30±0.02.
+        // Minimal subclass so FormFillingScenario can be exercised without a driver.
         FormFillingScenario scenario = new FormFillingScenario(null) {
-            // driver null — sadece shouldReturnToHomeAfterSubmit çağrılıyor
+            // driver is null — only shouldReturnToHomeAfterSubmit is exercised
         };
 
         int trueCount = 0;
@@ -43,7 +43,7 @@ class FormFillingScenarioTest {
     }
 
     // -------------------------------------------------------------------------
-    // Lab / Chrome gerektiren testler
+    // Integration tests — require real Chrome and lab network
     // -------------------------------------------------------------------------
 
     @Nested
@@ -70,7 +70,7 @@ class FormFillingScenarioTest {
                 driver.get("http://techmarket.lab/contact.html"); // her iterasyonda temiz form
                 ContactPage page = new ContactPage(driver);
                 assertDoesNotThrow(
-                    () -> page.fillForm("Test User", "test@example.com", subject, "Test mesajı"),
+                    () -> page.fillForm("Test User", "test@example.com", subject, "Test message"),
                     "selectByVisibleText failed for subject: \"" + subject + "\""
                 );
                 System.out.println("[SubjectTest] OK: \"" + subject + "\"");
@@ -89,14 +89,14 @@ class FormFillingScenarioTest {
 
             page.fillForm(name, email, subject, message);
 
-            // Alanlar dolu olmalı (submit öncesi kontrol)
+            // Fields should be populated before submit
             String nameVal = driver.findElement(
                 org.openqa.selenium.By.cssSelector("#name, input[name='name']")).getAttribute("value");
             assertFalse(nameVal == null || nameVal.isBlank(),
                 "Name field should be filled before submit");
 
-            // Submit exception fırlatmamalı
-            // (success-banner sitede yok — bilinçli descope; sadece exception yokluğu yeterli)
+            // Submit should not throw
+            // (no success-banner on the site — intentional descope; absence of exception is enough)
             assertDoesNotThrow(page::submit,
                 "submit() should complete without throwing");
         }

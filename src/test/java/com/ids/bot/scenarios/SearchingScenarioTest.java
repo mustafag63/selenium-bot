@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SearchingScenarioTest {
 
     // -------------------------------------------------------------------------
-    // Lab'sız unit testler
+    // Unit tests — no lab required
     // -------------------------------------------------------------------------
 
     @Test
@@ -51,7 +51,7 @@ class SearchingScenarioTest {
     }
 
     // -------------------------------------------------------------------------
-    // Lab / Chrome gerektiren testler
+    // Integration tests — require real Chrome and lab network
     // -------------------------------------------------------------------------
 
     @Nested
@@ -89,7 +89,7 @@ class SearchingScenarioTest {
         void contactVisitLeavesFormEmpty() {
             driver.get("http://techmarket.lab/contact.html");
 
-            // Form alanları GET sonrası boş olmalı
+            // Form fields should be empty after a fresh GET
             String nameVal = driver.findElement(
                 org.openqa.selenium.By.cssSelector("#name, input[name='name']")).getAttribute("value");
             assertTrue(nameVal == null || nameVal.isBlank(),

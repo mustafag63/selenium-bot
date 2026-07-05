@@ -38,7 +38,7 @@ public class SearchingScenario {
                 case PRODUCTS -> productsPage.open();
                 case PRODUCT_DETAIL -> {
                     productsPage.open();
-                    // GUARD: ürün yoksa atla
+                    // GUARD: skip if no products are listed
                     if (productsPage.getProductCount() == 0) {
                         System.out.println("[Searching] " + n + ": PRODUCT_DETAIL skipped (no products)");
                         current = BotState.PRODUCTS;
@@ -47,7 +47,7 @@ public class SearchingScenario {
                     }
                     productsPage.clickRandomProduct();
                     String productName = detailPage.getProductName();
-                    // %40 olasılıkla sepete ekle
+                    // 40% chance to add to cart
                     if (ThreadLocalRandom.current().nextDouble() < 0.40) {
                         detailPage.addToCart();
                         System.out.println("[Searching] " + n + ": added to cart - " + productName);
@@ -57,7 +57,7 @@ public class SearchingScenario {
                 }
                 case ABOUT -> driver.get("http://techmarket.lab/about.html");
                 case CONTACT -> {
-                    // SADECE sayfayı aç, form doldurma yok
+                    // Open the page only — no form filling
                     driver.get("http://techmarket.lab/contact.html");
                     System.out.println("[Searching] " + n + ": CONTACT (form not filled)");
                 }

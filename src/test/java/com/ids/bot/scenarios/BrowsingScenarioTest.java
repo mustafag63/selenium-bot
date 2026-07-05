@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BrowsingScenarioTest {
 
     // -------------------------------------------------------------------------
-    // Lab'sız unit testler (TAG YOK)
+    // Unit tests — no lab required (no tag)
     // -------------------------------------------------------------------------
 
     @Test
@@ -33,7 +33,7 @@ class BrowsingScenarioTest {
 
         for (BotState source : matrix.keySet()) {
             Set<BotState> declared = matrix.get(source).keySet();
-            // her tanımlı kenarın en az bir kez tetiklendiğini izle
+            // track that every declared edge fires at least once
             Map<BotState, Long> hits = new java.util.HashMap<>();
             declared.forEach(s -> hits.put(s, 0L));
 
@@ -44,7 +44,7 @@ class BrowsingScenarioTest {
                 hits.merge(next, 1L, Long::sum);
             }
 
-            // dead-edge kontrolü: her kenar en az bir kez tetiklenmeli
+            // dead-edge check: every declared edge must fire at least once
             for (BotState target : declared) {
                 assertTrue(hits.get(target) > 0,
                     "Dead edge detected: " + source + " -> " + target + " never fired");
@@ -53,7 +53,7 @@ class BrowsingScenarioTest {
     }
 
     // -------------------------------------------------------------------------
-    // Lab / Chrome gerektiren testler
+    // Integration tests — require real Chrome and lab network
     // -------------------------------------------------------------------------
 
     @Nested
@@ -82,7 +82,7 @@ class BrowsingScenarioTest {
             Object entries = js.executeScript(
                 "return performance.getEntriesByType('navigation').map(e => e.transferSize)");
 
-            // transferSize > 0 ise cache hit değil (cache açık olsaydı 0 dönerdi)
+            // transferSize > 0 means the resource was fetched over the network, not from cache
             assertNotNull(entries, "performance.getEntriesByType should return data");
             System.out.println("Transfer sizes: " + entries);
         }

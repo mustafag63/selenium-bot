@@ -36,7 +36,7 @@ public class BrowsingScenario {
                 case PRODUCTS -> productsPage.open();
                 case PRODUCT_DETAIL -> {
                     productsPage.open();
-                    // GUARD: ürün yoksa atla
+                    // GUARD: skip if no products are listed
                     if (productsPage.getProductCount() == 0) {
                         System.out.println("[Browsing] " + n + ": PRODUCT_DETAIL skipped (no products)");
                         current = BotState.PRODUCTS;

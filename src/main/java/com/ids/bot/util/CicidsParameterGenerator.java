@@ -1,10 +1,10 @@
 package com.ids.bot.util;
 
 /**
- * CICIDS parametrelerine erişimin eski yolu. Yeni kod TimingProfile/TimingProfiles kullanmalı.
- * Bu sınıf sadece geriye dönük uyumluluk için duruyor, TimingProfiles.aggregate()'e delege ediyor.
+ * Legacy access point for CICIDS parameters. New code should use TimingProfile/TimingProfiles.
+ * This class is kept for backward compatibility only; it delegates to TimingProfiles.aggregate().
  *
- * @deprecated TimingProfiles ve TimingProfile kullanın.
+ * @deprecated Use TimingProfiles and TimingProfile instead.
  */
 @Deprecated
 public class CicidsParameterGenerator {

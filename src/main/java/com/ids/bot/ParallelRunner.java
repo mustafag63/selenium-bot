@@ -74,8 +74,8 @@ public class ParallelRunner {
             executor.shutdownNow();
         }
 
-        // Sonuç özeti
-        System.out.println("\n================ PARALEL KOŞU ÖZETİ ================");
+        // Result summary
+        System.out.println("\n================ PARALLEL RUN SUMMARY ================");
         String[] personas = {"browsing", "searching", "formfilling"};
         String[] threads  = {"bot-browsing", "bot-searching", "bot-formfilling"};
         int ok = 0;
@@ -90,6 +90,6 @@ public class ParallelRunner {
                 System.out.printf("FAIL %-12s (%s) -> %s%n", personas[i], threads[i], e.getCause());
             }
         }
-        System.out.println(ok + "/3 bot başarıyla tamamlandı.");
+        System.out.println(ok + "/3 bots completed successfully.");
     }
 }

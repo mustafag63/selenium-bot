@@ -33,8 +33,8 @@ public class ContactPage extends BasePage {
     }
 
     /**
-     * Formu native HTML submit ile gönderir (gerçek POST /submit-contact isteği).
-     * Nginx backend'i olmadığı için 404 dönebilir ama bu isteğin loglanmasını etkilemez.
+     * Submits the form via native HTML submit (generates a real POST /submit-contact request).
+     * The Nginx backend has no handler so a 404 is expected, but the request is still logged.
      */
     public void submit() {
         click(BTN_SUBMIT);

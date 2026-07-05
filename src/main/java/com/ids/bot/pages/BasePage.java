@@ -9,10 +9,10 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.time.Duration;
 
 /**
- * Ortak Selenium altyapısı. Tüm page sınıfları bunu extend eder.
+ * Shared Selenium infrastructure. All page classes extend this.
  *
- * Sadece explicit wait kullanılır — implicit wait KESİNLİKLE set edilmez.
- * İkisi karıştırılırsa Selenium dökümanına göre öngörülemez gecikme riski doğar.
+ * Only explicit waits are used — implicit wait must NEVER be set.
+ * Mixing the two causes unpredictable timing behaviour per the Selenium documentation.
  */
 public abstract class BasePage {
 

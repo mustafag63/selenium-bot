@@ -6,19 +6,20 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Oturum başına seçilen User-Agent ve ilgili Client Hints meta verilerini yönetir.
+ * Manages the User-Agent selected per session and the associated Client Hints metadata.
  *
- * TASARIM KARARI: Havuz SADECE Chromium-ailesi tarayıcılardan oluşur (Chrome ve Edge).
- * Firefox/Safari/iOS KESİNLİKLE EKLENMEMELİ. Sebebi: gerçek istemci her zaman headless
- * Chrome'dur; UA string'i "Firefox" dese bile Chrome'un gönderdiği Client Hints header'ları
- * (sec-ch-ua vb.) her zaman Chromium imzası taşır — bu bir fingerprint tutarsızlığı yaratır.
- * Çeşitlilik OS/sürüm/mimari/mobil boyutunda korunuyor, motor (Chromium) sabit.
- * (Bu proje tarihinde gerçekten bulunmuş ve düzeltilmiş bir sorun.)
+ * DESIGN DECISION: The pool contains ONLY Chromium-family browsers (Chrome and Edge).
+ * Firefox/Safari/iOS must NEVER be added. Reason: the real client is always headless
+ * Chrome; even if the UA string says "Firefox", Chrome's Client Hints headers
+ * (sec-ch-ua etc.) always carry a Chromium signature — creating a detectable fingerprint
+ * inconsistency. Diversity is preserved across OS/version/arch/mobile dimensions while
+ * the engine (Chromium) stays fixed.
+ * (This was a real bug found and fixed during this project.)
  */
 public class UserAgentPool {
 
     /**
-     * Tek bir UA girdisi: string, platform meta verisi ve Client Hints alanları.
+     * One UA entry: the UA string, platform metadata, and Client Hints fields.
      */
     public record UserAgentEntry(
         String userAgent,
@@ -32,13 +33,13 @@ public class UserAgentPool {
         String fullVersion
     ) {
         /**
-         * CDP Network.setUserAgentOverride'ın userAgentMetadata parametresi için Map üretir.
-         * brands: GREASE + Chromium + gerçek marka.
+         * Builds the Map for CDP Network.setUserAgentOverride's userAgentMetadata parameter.
+         * brands: GREASE token + Chromium + real brand.
          */
         public Map<String, Object> buildMetadata() {
             Map<String, Object> meta = new LinkedHashMap<>();
 
-            // GREASE token — sabit örnek, tarayıcı normalde rastgele seçer
+            // GREASE token — fixed example; the browser normally randomises this
             Map<String, Object> grease = new LinkedHashMap<>();
             grease.put("brand", "Not/A)Brand");
             grease.put("version", "8");
@@ -53,7 +54,7 @@ public class UserAgentPool {
 
             meta.put("brands", List.of(grease, chromium, real));
 
-            // fullVersionList — yüksek-entropi
+            // fullVersionList — high-entropy hint
             Map<String, Object> greaseF = new LinkedHashMap<>();
             greaseF.put("brand", "Not/A)Brand");
             greaseF.put("version", "8.0.0.0");
@@ -79,10 +80,10 @@ public class UserAgentPool {
     }
 
     // -------------------------------------------------------------------------
-    // 20 girişlik havuz: Chrome×14, Edge×6
-    // ÖNEMLİ: Windows 11 UA string'i HÂLÂ "Windows NT 10.0" yazar;
-    // Win11 ayrımı platformVersion="15.0.0" ile yapılır.
-    // "NT 11.0" YAZILMAZ — bu proje tarihinde bulunan gerçek bir hataydı.
+    // Pool of 20 entries: Chrome×14, Edge×6
+    // IMPORTANT: Windows 11 UA strings still say "Windows NT 10.0";
+    // Win11 is distinguished via platformVersion="15.0.0".
+    // "NT 11.0" must never be written — this was a real bug found in this project.
     // -------------------------------------------------------------------------
     private static final List<UserAgentEntry> POOL = List.of(
 
@@ -102,20 +103,20 @@ public class UserAgentPool {
         new UserAgentEntry(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "Windows", "10.0.0", "x86", "", false, "Google Chrome", 125, "125.0.6422.142"),
-        // Windows 11 (NT 10.0 string, platformVersion 15.0.0)
+        // Windows 11 (UA still says NT 10.0, Win11 identified by platformVersion 15.0.0)
         new UserAgentEntry(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "Windows", "15.0.0", "x86", "", false, "Google Chrome", 126, "126.0.6478.127"),
-        // Edge Windows 10
+        // Edge on Windows 10
         new UserAgentEntry(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0",
             "Windows", "10.0.0", "x86", "", false, "Microsoft Edge", 126, "126.0.2592.87"),
-        // Edge Windows 11
+        // Edge on Windows 11
         new UserAgentEntry(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",
             "Windows", "15.0.0", "x86", "", false, "Microsoft Edge", 124, "124.0.2478.105"),
 
-        // --- macOS Intel ---
+        // --- macOS Intel (UA string shows Intel regardless of actual arch) ---
         new UserAgentEntry(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "macOS", "14.5.0", "x86", "", false, "Google Chrome", 126, "126.0.6478.127"),
@@ -125,16 +126,16 @@ public class UserAgentPool {
         new UserAgentEntry(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
             "macOS", "13.6.0", "x86", "", false, "Google Chrome", 121, "121.0.6167.184"),
-        // macOS arm (M-serisi)
+        // macOS arm (Apple M-series)
         new UserAgentEntry(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "macOS", "14.5.0", "arm", "", false, "Google Chrome", 126, "126.0.6478.127"),
-        // Edge macOS arm
+        // Edge on macOS arm
         new UserAgentEntry(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0",
             "macOS", "14.5.0", "arm", "", false, "Microsoft Edge", 126, "126.0.2592.87"),
 
-        // --- Linux ---
+        // --- Linux (x86_64) ---
         new UserAgentEntry(
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "Linux", "", "x86", "", false, "Google Chrome", 126, "126.0.6478.127"),
@@ -144,12 +145,12 @@ public class UserAgentPool {
         new UserAgentEntry(
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Linux", "", "x86", "", false, "Google Chrome", 120, "120.0.6099.224"),
-        // Edge Linux
+        // Edge on Linux
         new UserAgentEntry(
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",
             "Linux", "", "x86", "", false, "Microsoft Edge", 124, "124.0.2478.105"),
 
-        // --- Android (mobile=true) ---
+        // --- Android (mobile=true, no arch field) ---
         new UserAgentEntry(
             "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.122 Mobile Safari/537.36",
             "Android", "14.0.0", "", "SM-S928B", true, "Google Chrome", 126, "126.0.6478.122"),
@@ -161,19 +162,19 @@ public class UserAgentPool {
             "Android", "14.0.0", "", "Pixel 8", true, "Microsoft Edge", 124, "124.0.2478.105")
     );
 
-    /** Havuzdan rastgele bir UserAgentEntry döndürür. Her oturum için bir kez çağır. */
+    /** Returns a random UserAgentEntry from the pool. Call once per session. */
     public static UserAgentEntry randomEntry() {
         return POOL.get(ThreadLocalRandom.current().nextInt(POOL.size()));
     }
 
-    /** Tüm girişleri döndürür (geriye dönük uyumluluk / test). */
+    /** Returns all entries (backward compatibility / testing). */
     public static List<UserAgentEntry> allEntries() {
         return POOL;
     }
 
     /**
-     * Geriye dönük uyumluluk: eski çağıran kodlar için UA string'ini doğrudan döndürür.
-     * @deprecated randomEntry().userAgent() kullanın.
+     * Backward compatibility: returns the UA string directly for legacy callers.
+     * @deprecated Use randomEntry().userAgent() instead.
      */
     @Deprecated
     public static String randomUserAgent() {

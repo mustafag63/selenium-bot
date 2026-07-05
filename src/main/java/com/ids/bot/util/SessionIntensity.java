@@ -3,7 +3,7 @@ package com.ids.bot.util;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Persona başına Gaussian oturum yoğunluğu — kaç adım atılacağını belirler.
+ * Per-persona Gaussian session intensity — determines how many steps are taken per session.
  */
 public enum SessionIntensity {
 
@@ -27,14 +27,14 @@ public enum SessionIntensity {
         this.maxSteps  = maxSteps;
     }
 
-    /** Gaussian örnekle, [minSteps, maxSteps] aralığına clamp'le. */
+    /** Samples from Gaussian and clamps to [minSteps, maxSteps]. */
     public int sample() {
         double raw = ThreadLocalRandom.current().nextGaussian() * stdDev + meanSteps;
         int count  = (int) Math.round(raw);
         return Math.max(minSteps, Math.min(maxSteps, count));
     }
 
-    /** Elle doğrulama: her enum için 100.000 örnekle ortalama kontrol. */
+    /** Manual validation: checks empirical mean for each enum over 100 000 samples. */
     public static void main(String[] args) {
         for (SessionIntensity si : values()) {
             long sum = 0;

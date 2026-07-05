@@ -3,11 +3,11 @@ package com.ids.bot.util;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Bir personanın zamanlama parametrelerini taşıyan immutable record.
- * Tüm log-mean/log-std sabitleri log1p(microseconds) uzayındadır.
+ * Immutable record carrying the timing parameters for one persona.
+ * All log-mean/log-std constants are in log1p(microseconds) space.
  *
- * @deprecated sampleTotalActions() metodu SessionIntensity ile değiştirildi (3 Temmuz 2026).
- * Record'un kendisi aktif; sadece eski metod deprecated.
+ * @deprecated sampleTotalActions() was replaced by SessionIntensity (3 July 2026).
+ * The record itself is active; only that one method is deprecated.
  */
 public record TimingProfile(
     double activeLogMean,
@@ -27,7 +27,7 @@ public record TimingProfile(
     double fwdLogStd
 ) {
 
-    /** log1p(µs) parametrelerinden ms cinsinden örneklenmiş aktif süre döndürür. */
+    /** Returns a sampled active duration in ms from log1p(µs) parameters. */
     public double sampleActiveDurationMs() {
         double logVal = ThreadLocalRandom.current().nextGaussian() * activeLogStd + activeLogMean;
         double us = Math.expm1(logVal);          // log1p ters: expm1
@@ -35,7 +35,7 @@ public record TimingProfile(
         return clamp(ms, activeClampMinMs, activeClampMaxMs);
     }
 
-    /** log1p(µs) parametrelerinden ms cinsinden örneklenmiş idle süre döndürür. */
+    /** Returns a sampled idle duration in ms from log1p(µs) parameters. */
     public double sampleIdleDurationMs() {
         double logVal = ThreadLocalRandom.current().nextGaussian() * idleLogStd + idleLogMean;
         double us = Math.expm1(logVal);
@@ -44,15 +44,15 @@ public record TimingProfile(
     }
 
     /**
-     * Zero-inflated forward wait süresi (ms).
-     * fwdNearZeroProb olasılığıyla [1,50]ms uniform; yoksa koşullu log-normal.
+     * Zero-inflated forward wait duration (ms).
+     * With probability fwdNearZeroProb draws from [1,50]ms uniform; otherwise conditional log-normal.
      */
     public double sampleFwdWaitMs() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         if (rng.nextDouble() < fwdNearZeroProb) {
             return rng.nextDouble(1.0, 50.0);
         }
-        // Rejection sampling — negatif veya aşırı uç değerleri reddet
+        // Rejection sampling — discard negative or extreme outliers
         for (int attempt = 0; attempt < 100; attempt++) {
             double logVal = rng.nextGaussian() * fwdLogStd + fwdLogMean;
             double us = Math.expm1(logVal);
@@ -64,14 +64,14 @@ public record TimingProfile(
         return 500.0; // rejection fallback
     }
 
-    /** Bu oturumda aktif+idle döngüsü mü yaşanacak, yoksa düz fwdWait mi? */
+    /** Returns true if this wait should be an active+idle cycle rather than a plain fwdWait. */
     public boolean shouldHaveActiveIdleCycle() {
         return ThreadLocalRandom.current().nextDouble() < pActiveIdleCycle;
     }
 
     /**
-     * @deprecated SessionIntensity ile değiştirildi, 3 Temmuz 2026 — sadece
-     * TimingProfiles.aggregate() referans profili için tutuluyor.
+     * @deprecated Replaced by SessionIntensity on 3 July 2026 — retained only
+     * for the TimingProfiles.aggregate() reference profile.
      */
     @Deprecated
     public int sampleTotalActions() {
