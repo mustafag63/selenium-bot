@@ -30,7 +30,9 @@ public abstract class BasePage {
     }
 
     protected void click(By locator) {
-        waitForElement(locator).click();
+        new WebDriverWait(driver, DEFAULT_WAIT)
+            .until(ExpectedConditions.elementToBeClickable(locator))
+            .click();
     }
 
     public String getCurrentUrl() {
