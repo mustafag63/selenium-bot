@@ -15,6 +15,29 @@ import java.util.concurrent.atomic.AtomicInteger;
  * randomly weighted personas, capped at a fixed concurrency, for a fixed
  * wall-clock duration. Unlike ParallelRunner (one-shot, 3 bots, run once),
  * this models overlapping user arrivals over an extended time window.
+ *
+ * <p><b>Concurrency design:</b> The arrival loop never blocks on capacity —
+ * it records each arrival immediately (persona sampling, counter increment)
+ * and delegates to the executor. The submitted task acquires a semaphore
+ * permit and blocks only its own thread, not the arrival timing. This keeps
+ * the arrival process statistically independent of slot availability.
+ *
+ * <p><b>Why newCachedThreadPool instead of newFixedThreadPool(MAX_CONCURRENT):</b>
+ * A fixed pool of size MAX_CONCURRENT would create two overlapping capacity
+ * constraints (pool size AND semaphore), making the semaphore redundant and
+ * coupling two invariants that must always stay in sync. With a cached pool,
+ * the semaphore is the single, authoritative concurrency gate.
+ * Note: newFixedThreadPool would NOT deadlock here — a queued task holds no
+ * resources while waiting for a thread, so circular wait cannot form.
+ *
+ * <p><b>Thread growth and Little's Law:</b> newCachedThreadPool() creates a
+ * new OS thread per submitted task. With IAT uniform(25s, 65s) the mean
+ * arrival rate is λ=1/45 s⁻¹. At W≈92 s weighted-average session duration,
+ * Little's Law gives L=λW≈0.68 in-flight sessions on average — well below
+ * MAX_CONCURRENT=3, so the backlog does not grow without bound. After the
+ * deadline, at most ~2 sessions may still be running; the natural drain tail
+ * is ≲290 s (≈ one maximum-length BROWSING session). The 1-day
+ * awaitTermination ensures no session is ever force-killed.
  */
 public class MixedTrafficRunner {
 
@@ -33,7 +56,7 @@ public class MixedTrafficRunner {
                 cumulative += p.weight;
                 if (r < cumulative) return p;
             }
-            return BROWSING; // floating point güvenliği için fallback
+            return BROWSING; // floating-point safety fallback
         }
     }
 
@@ -41,7 +64,9 @@ public class MixedTrafficRunner {
         int durationMinutes = args.length > 0 ? Integer.parseInt(args[0]) : 15;
         Instant deadline = Instant.now().plus(Duration.ofMinutes(durationMinutes));
 
-        ExecutorService executor = Executors.newFixedThreadPool(MAX_CONCURRENT);
+        // newCachedThreadPool: the semaphore is the real concurrency gate.
+        // A fixed pool of size MAX_CONCURRENT would starve queued tasks waiting for a slot.
+        ExecutorService executor = Executors.newCachedThreadPool();
         Semaphore slots = new Semaphore(MAX_CONCURRENT);
 
         AtomicInteger launched = new AtomicInteger(0);
@@ -50,14 +75,14 @@ public class MixedTrafficRunner {
         Map<Persona, AtomicInteger> perPersonaCount = new EnumMap<>(Persona.class);
         for (Persona p : Persona.values()) perPersonaCount.put(p, new AtomicInteger(0));
 
-        System.out.printf("=== MixedTrafficRunner: %d dakika, max %d eşzamanlı bot, ağırlık 60/30/10 ===%n",
+        System.out.printf("=== MixedTrafficRunner: %d min, max %d concurrent bots, weights 60/30/10 ===%n",
             durationMinutes, MAX_CONCURRENT);
 
         while (Instant.now().isBefore(deadline)) {
-            // Gerçekçi varış aralığı — bir sonraki "kullanıcı" için rastgele bekleme
-            Thread.sleep(ThreadLocalRandom.current().nextLong(3_000, 15_000));
+            Thread.sleep(ThreadLocalRandom.current().nextLong(25_000, 65_000));
+            if (!Instant.now().isBefore(deadline)) break;
 
-            slots.acquire(); // kapasite dolu ise burada doğal olarak kuyruklanır
+            // Arrival is recorded now — independently of slot availability.
             Persona persona = Persona.sampleWeighted();
             int id = launched.incrementAndGet();
             perPersonaCount.get(persona).incrementAndGet();
@@ -65,6 +90,13 @@ public class MixedTrafficRunner {
             executor.submit(() -> {
                 String threadLabel = "bot-" + persona.name().toLowerCase() + "-" + id;
                 Thread.currentThread().setName(threadLabel);
+                // Capacity gate: only this task thread blocks, not the arrival loop.
+                try {
+                    slots.acquire();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
                 WebDriver driver = null;
                 try {
                     driver = App.createDriver(UserAgentPool.randomEntry());
@@ -85,17 +117,15 @@ public class MixedTrafficRunner {
             });
         }
 
-        System.out.println("Süre doldu — yeni bot başlatılmıyor, devam edenler bitiriliyor...");
+        System.out.println("Deadline reached — no new bots, waiting for in-flight sessions to finish...");
         executor.shutdown();
-        if (!executor.awaitTermination(10, TimeUnit.MINUTES)) {
-            executor.shutdownNow();
-        }
+        executor.awaitTermination(1, TimeUnit.DAYS); // no session is ever force-killed
 
-        System.out.println("\n================ MIXED TRAFFIC ÖZETİ ================");
-        System.out.println("Toplam başlatılan: " + launched.get());
+        System.out.println("\n================ MIXED TRAFFIC SUMMARY ================");
+        System.out.println("Total launched: " + launched.get());
         for (Persona p : Persona.values()) {
             System.out.printf("  %-14s %d%n", p.name(), perPersonaCount.get(p).get());
         }
-        System.out.println("Başarılı: " + okCount.get() + " | Başarısız: " + failCount.get());
+        System.out.println("OK: " + okCount.get() + " | FAIL: " + failCount.get());
     }
 }
