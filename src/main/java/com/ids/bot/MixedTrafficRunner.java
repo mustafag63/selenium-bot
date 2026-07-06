@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * resources while waiting for a thread, so circular wait cannot form.
  *
  * <p><b>Thread growth and Little's Law:</b> newCachedThreadPool() creates a
- * new OS thread per submitted task. With IAT uniform(25s, 65s) the mean
- * arrival rate is λ=1/45 s⁻¹. At W≈92 s weighted-average session duration,
+ * new OS thread per submitted task. With IAT uniform(28s, 72s) the mean
+ * arrival rate is λ=1/50 s⁻¹. At W≈102 s weighted-average session duration,
  * Little's Law gives L=λW≈0.68 in-flight sessions on average — well below
  * MAX_CONCURRENT=3, so the backlog does not grow without bound. After the
  * deadline, at most ~2 sessions may still be running; the natural drain tail
@@ -79,7 +79,7 @@ public class MixedTrafficRunner {
             durationMinutes, MAX_CONCURRENT);
 
         while (Instant.now().isBefore(deadline)) {
-            Thread.sleep(ThreadLocalRandom.current().nextLong(25_000, 65_000));
+            Thread.sleep(ThreadLocalRandom.current().nextLong(28_000, 72_000));
             if (!Instant.now().isBefore(deadline)) break;
 
             // Arrival is recorded now — independently of slot availability.

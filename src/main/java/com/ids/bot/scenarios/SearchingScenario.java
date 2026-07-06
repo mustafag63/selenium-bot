@@ -37,7 +37,10 @@ public class SearchingScenario {
                 case HOME -> homePage.open();
                 case PRODUCTS -> productsPage.open();
                 case PRODUCT_DETAIL -> {
-                    productsPage.open();
+                    if (current != BotState.PRODUCTS) {
+                        productsPage.open();
+                        waitBetweenActions(timingProfile);
+                    }
                     // GUARD: skip if no products are listed
                     if (productsPage.getProductCount() == 0) {
                         System.out.println("[Searching] " + n + ": PRODUCT_DETAIL skipped (no products)");
