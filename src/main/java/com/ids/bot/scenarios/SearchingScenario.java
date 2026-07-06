@@ -25,6 +25,16 @@ public class SearchingScenario {
         this.detailPage    = new ProductDetailPage(driver);
     }
 
+    /** Test-only constructor: inject a custom TimingProfile (e.g. a fast/fixed profile for regression tests). */
+    SearchingScenario(WebDriver driver, TimingProfile timingProfile) {
+        this.driver        = driver;
+        this.model         = BotPersonas.searchingModel();
+        this.timingProfile = timingProfile;
+        this.homePage      = new HomePage(driver);
+        this.productsPage  = new ProductsPage(driver);
+        this.detailPage    = new ProductDetailPage(driver);
+    }
+
     public void run() throws InterruptedException {
         homePage.open();
         waitBetweenActions(timingProfile);
