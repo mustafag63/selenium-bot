@@ -25,6 +25,7 @@ public class BrowsingScenario {
 
     public void run() throws InterruptedException {
         homePage.open();
+        waitBetweenActions(timingProfile);
         BotState current = BotState.HOME;
         int actionCount  = SessionIntensity.BROWSING.sample();
 
