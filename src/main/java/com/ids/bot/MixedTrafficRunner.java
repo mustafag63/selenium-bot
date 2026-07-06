@@ -3,6 +3,11 @@ import com.ids.bot.scenarios.*;
 import com.ids.bot.util.UserAgentPool;
 import org.openqa.selenium.WebDriver;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumMap;
@@ -38,10 +43,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  * deadline, at most ~2 sessions may still be running; the natural drain tail
  * is ≲290 s (≈ one maximum-length BROWSING session). The 1-day
  * awaitTermination ensures no session is ever force-killed.
+ *
+ * <p><b>Ground-truth session log:</b> Each session appends one line to
+ * {@code session_log.csv} (persona, session id, start/end epoch, status).
+ * This does not affect bot behavior or timing — it is a passive record used
+ * offline to attribute captured pcap flows (by timestamp overlap) to the
+ * persona/session that produced them, enabling per-persona statistical
+ * validation (e.g. KS testing) on mixed-traffic captures.
  */
 public class MixedTrafficRunner {
 
     private static final int MAX_CONCURRENT = 3;
+
+    private static final Path SESSION_LOG = Paths.get("session_log.csv");
+    private static final Object SESSION_LOG_LOCK = new Object();
 
     private enum Persona {
         BROWSING(0.60), SEARCHING(0.30), FORM_FILLING(0.10);
@@ -60,9 +75,25 @@ public class MixedTrafficRunner {
         }
     }
 
+    private static void appendSessionLog(String line) {
+        synchronized (SESSION_LOG_LOCK) {
+            try {
+                Files.writeString(SESSION_LOG, line, StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                System.err.println("[session_log] failed to write: " + e.getMessage());
+            }
+        }
+    }
+
     public static void main(String[] args) throws InterruptedException {
         int durationMinutes = args.length > 0 ? Integer.parseInt(args[0]) : 15;
         Instant deadline = Instant.now().plus(Duration.ofMinutes(durationMinutes));
+
+        try {
+            Files.writeString(SESSION_LOG, "persona,session_id,start_epoch,end_epoch,status\n");
+        } catch (IOException e) {
+            System.err.println("[session_log] failed to initialize " + SESSION_LOG + ": " + e.getMessage());
+        }
 
         // newCachedThreadPool: the semaphore is the real concurrency gate.
         // A fixed pool of size MAX_CONCURRENT would starve queued tasks waiting for a slot.
@@ -77,6 +108,7 @@ public class MixedTrafficRunner {
 
         System.out.printf("=== MixedTrafficRunner: %d min, max %d concurrent bots, weights 60/30/10 ===%n",
             durationMinutes, MAX_CONCURRENT);
+        System.out.println("Session ground-truth log: " + SESSION_LOG.toAbsolutePath());
 
         while (Instant.now().isBefore(deadline)) {
             Thread.sleep(ThreadLocalRandom.current().nextLong(28_000, 72_000));
@@ -90,14 +122,16 @@ public class MixedTrafficRunner {
             executor.submit(() -> {
                 String threadLabel = "bot-" + persona.name().toLowerCase() + "-" + id;
                 Thread.currentThread().setName(threadLabel);
-                // Capacity gate: only this task thread blocks, not the arrival loop.
+                // Capacity gate: only this task thread blocks, not the arrival timing.
                 try {
                     slots.acquire();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;
                 }
+                long startEpoch = Instant.now().getEpochSecond();
                 WebDriver driver = null;
+                boolean ok = false;
                 try {
                     driver = App.createDriver(UserAgentPool.randomEntry());
                     switch (persona) {
@@ -106,11 +140,15 @@ public class MixedTrafficRunner {
                         case FORM_FILLING -> new FormFillingScenario(driver).run();
                     }
                     okCount.incrementAndGet();
+                    ok = true;
                     System.out.println("[" + threadLabel + "] OK");
                 } catch (Exception e) {
                     failCount.incrementAndGet();
                     System.err.println("[" + threadLabel + "] FAIL -> " + e.getMessage());
                 } finally {
+                    long endEpoch = Instant.now().getEpochSecond();
+                    appendSessionLog(String.format("%s,%d,%d,%d,%s%n",
+                        persona.name(), id, startEpoch, endEpoch, ok ? "OK" : "FAIL"));
                     if (driver != null) driver.quit();
                     slots.release();
                 }
