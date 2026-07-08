@@ -37,6 +37,7 @@ public class SearchingScenario {
 
     public void run() throws InterruptedException {
         homePage.open();
+        NavLog.logNav("HOME");
         waitBetweenActions(timingProfile);
         BotState current = BotState.HOME;
         int actionCount  = SessionIntensity.SEARCHING.sample();
@@ -45,11 +46,12 @@ public class SearchingScenario {
             BotState next = model.nextState(current);
 
             switch (next) {
-                case HOME -> homePage.open();
-                case PRODUCTS -> productsPage.open();
+                case HOME -> { homePage.open(); NavLog.logNav("HOME"); }
+                case PRODUCTS -> { productsPage.open(); NavLog.logNav("PRODUCTS"); }
                 case PRODUCT_DETAIL -> {
                     if (current != BotState.PRODUCTS) {
                         productsPage.open();
+                        NavLog.logNav("PRODUCTS");
                         waitBetweenActions(timingProfile);
                     }
                     // GUARD: skip if no products are listed
@@ -60,19 +62,25 @@ public class SearchingScenario {
                         continue;
                     }
                     productsPage.clickRandomProduct();
+                    // 40% chance to add to cart — decided (and logged) before the alert-wait,
+                    // so the NavLog timestamp still marks the true navigation instant, not the
+                    // post-alert instant. The CART/NOCART tag lets the *following* gap (which
+                    // now legitimately includes the alert-wait for CART) be analyzed separately.
+                    boolean willAddToCart = ThreadLocalRandom.current().nextDouble() < 0.40;
+                    NavLog.logNav(willAddToCart ? "PRODUCT_DETAIL_CART" : "PRODUCT_DETAIL_NOCART");
                     String productName = detailPage.getProductName();
-                    // 40% chance to add to cart
-                    if (ThreadLocalRandom.current().nextDouble() < 0.40) {
+                    if (willAddToCart) {
                         detailPage.addToCart();
                         System.out.println("[Searching] " + n + ": added to cart - " + productName);
                     } else {
                         System.out.println("[Searching] " + n + ": PRODUCT_DETAIL - " + productName);
                     }
                 }
-                case ABOUT -> driver.get("http://techmarket.lab/about.html");
+                case ABOUT -> { driver.get("http://techmarket.lab/about.html"); NavLog.logNav("ABOUT"); }
                 case CONTACT -> {
                     // Open the page only — no form filling
                     driver.get("http://techmarket.lab/contact.html");
+                    NavLog.logNav("CONTACT");
                     System.out.println("[Searching] " + n + ": CONTACT (form not filled)");
                 }
             }

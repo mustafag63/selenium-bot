@@ -36,13 +36,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * resources while waiting for a thread, so circular wait cannot form.
  *
  * <p><b>Thread growth and Little's Law:</b> newCachedThreadPool() creates a
- * new OS thread per submitted task. With IAT uniform(28s, 72s) the mean
- * arrival rate is λ=1/50 s⁻¹. At W≈102 s weighted-average session duration,
- * Little's Law gives L=λW≈0.68 in-flight sessions on average — well below
- * MAX_CONCURRENT=3, so the backlog does not grow without bound. After the
- * deadline, at most ~2 sessions may still be running; the natural drain tail
- * is ≲290 s (≈ one maximum-length BROWSING session). The 1-day
- * awaitTermination ensures no session is ever force-killed.
+ * new OS thread per submitted task. With IAT exponential(mean=8.5s) (Poisson
+ * arrivals — see nextArrivalDelayMs()) the mean arrival rate is λ=1/8.5 s⁻¹.
+ * At W≈102 s weighted-average session duration, Little's Law gives
+ * L=λW≈12.0 in-flight sessions on average — below MAX_CONCURRENT=18, but
+ * with much less headroom than the previous uniform(28,72)s IAT (L≈0.68 vs
+ * MAX_CONCURRENT=3). After the deadline, up to MAX_CONCURRENT sessions may
+ * still be running; the natural drain tail is ≲290 s (≈ one maximum-length
+ * BROWSING session). The 1-day awaitTermination ensures no session is ever
+ * force-killed.
  *
  * <p><b>Ground-truth session log:</b> Each session appends one line to
  * {@code session_log.csv} (persona, session id, start/end epoch, status).
@@ -53,7 +55,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MixedTrafficRunner {
 
-    private static final int MAX_CONCURRENT = 3;
+    private static final int MAX_CONCURRENT = 18;
+
+    /** Poisson arrival process: mean interarrival time (seconds). Replaces the
+     * previous uniform(28,72)s spacing (see nextArrivalDelayMs()). */
+    private static final double ARRIVAL_MEAN_SECONDS = 8.5;
 
     private static final Path SESSION_LOG = Paths.get("session_log.csv");
     private static final Object SESSION_LOG_LOCK = new Object();
@@ -73,6 +79,14 @@ public class MixedTrafficRunner {
             }
             return BROWSING; // floating-point safety fallback
         }
+    }
+
+    /** Inverse-transform sampling of an exponential interarrival time: -ln(1-U)/lambda. */
+    private static long nextArrivalDelayMs() {
+        double lambda = 1.0 / ARRIVAL_MEAN_SECONDS;
+        double u = ThreadLocalRandom.current().nextDouble();
+        double interarrivalSeconds = -Math.log(1.0 - u) / lambda;
+        return Math.round(interarrivalSeconds * 1000.0);
     }
 
     private static void appendSessionLog(String line) {
@@ -111,7 +125,7 @@ public class MixedTrafficRunner {
         System.out.println("Session ground-truth log: " + SESSION_LOG.toAbsolutePath());
 
         while (Instant.now().isBefore(deadline)) {
-            Thread.sleep(ThreadLocalRandom.current().nextLong(28_000, 72_000));
+            Thread.sleep(nextArrivalDelayMs());
             if (!Instant.now().isBefore(deadline)) break;
 
             // Arrival is recorded now — independently of slot availability.

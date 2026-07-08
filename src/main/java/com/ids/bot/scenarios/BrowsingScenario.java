@@ -35,6 +35,7 @@ public class BrowsingScenario {
 
     public void run() throws InterruptedException {
         homePage.open();
+        NavLog.logNav("HOME");
         waitBetweenActions(timingProfile);
         BotState current = BotState.HOME;
         int actionCount  = SessionIntensity.BROWSING.sample();
@@ -43,11 +44,12 @@ public class BrowsingScenario {
             BotState next = model.nextState(current);
 
             switch (next) {
-                case HOME -> homePage.open();
-                case PRODUCTS -> productsPage.open();
+                case HOME -> { homePage.open(); NavLog.logNav("HOME"); }
+                case PRODUCTS -> { productsPage.open(); NavLog.logNav("PRODUCTS"); }
                 case PRODUCT_DETAIL -> {
                     if (current != BotState.PRODUCTS) {
                         productsPage.open();
+                        NavLog.logNav("PRODUCTS");
                         waitBetweenActions(timingProfile);
                     }
                     // GUARD: skip if no products are listed
@@ -58,11 +60,12 @@ public class BrowsingScenario {
                         continue;
                     }
                     productsPage.clickRandomProduct();
+                    NavLog.logNav("PRODUCT_DETAIL");
                     String productName = detailPage.getProductName();
                     System.out.println("[Browsing] " + n + ": PRODUCT_DETAIL - " + productName);
                 }
-                case ABOUT -> driver.get("http://techmarket.lab/about.html");
-                case CONTACT -> driver.get("http://techmarket.lab/contact.html");
+                case ABOUT -> { driver.get("http://techmarket.lab/about.html"); NavLog.logNav("ABOUT"); }
+                case CONTACT -> { driver.get("http://techmarket.lab/contact.html"); NavLog.logNav("CONTACT"); }
             }
 
             if (next != BotState.PRODUCT_DETAIL) {

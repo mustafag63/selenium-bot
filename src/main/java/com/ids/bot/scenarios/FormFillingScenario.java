@@ -39,6 +39,7 @@ public class FormFillingScenario {
 
         if (shouldReturnToHomeAfterSubmit()) {
             homePage.open();
+            NavLog.logNav("HOME");
             System.out.println("[FormFilling] Returned to HOME after submitting - session continues briefly");
             Thread.sleep(SUBMIT_SETTLE);
         }
@@ -54,9 +55,9 @@ public class FormFillingScenario {
         for (int n = 1; n <= entryCount; n++) {
             BotState next = entryModel.nextState(current);
             switch (next) {
-                case PRODUCTS -> productsPage.open();
-                case ABOUT    -> driver.get("http://techmarket.lab/about.html");
-                default       -> homePage.open();
+                case PRODUCTS -> { productsPage.open(); NavLog.logNav("PRODUCTS"); }
+                case ABOUT    -> { driver.get("http://techmarket.lab/about.html"); NavLog.logNav("ABOUT"); }
+                default       -> { homePage.open(); NavLog.logNav("HOME"); }
             }
             System.out.println("[FormFilling] Entry " + n + ": " + next + " (brief orientation)");
             current = next;
@@ -66,6 +67,7 @@ public class FormFillingScenario {
 
     void runContactPhase() throws InterruptedException {
         contactPage.open();
+        NavLog.logNav("CONTACT");
         System.out.println("[FormFilling] CONTACT page opened - filling form");
 
         String name    = FormDataPool.randomName();
@@ -81,6 +83,7 @@ public class FormFillingScenario {
         }
 
         contactPage.submit();
+        NavLog.logNav("SUBMIT_CONTACT");
         System.out.println("[FormFilling] Contact form submitted");
 
         Thread.sleep(SUBMIT_SETTLE);

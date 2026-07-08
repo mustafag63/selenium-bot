@@ -36,7 +36,7 @@ public class App {
     public static WebDriver createDriver(UserAgentEntry uaEntry) {
         ChromeOptions opts = new ChromeOptions();
         opts.addArguments(
-            
+            "--headless=new",
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-features=AsyncDns",
